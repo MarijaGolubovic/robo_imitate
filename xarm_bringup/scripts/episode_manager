@@ -248,10 +248,12 @@ class RealDataCollecting(Node):
 def main(args=None):
     msg = """
     k - enable save point mode and save current point
+    b - save key point
+
+    i - go to init pose
     n - new episode
     s - save current episode
-    i - go to init pose
-    b - save key point
+    q - quit
 """
     print(msg)
 

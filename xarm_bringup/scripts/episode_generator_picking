@@ -197,11 +197,6 @@ class ControlObjectPicking(Node):
 
         self.relative_move.pose = rnp.msgify(Pose, previous_current_pose)
 
-        # base_current_pose = rnp.numpify(self.obtained_object_pose.pose)
-        # desired_pose = np.linalg.inv(base_current_pose) @ target_transform
-        # desired_pose_msg = rnp.msgify(Transform, desired_pose)
-        # self.current_relative_pose = desired_pose_msg
-
         pose = rnp.msgify(Pose, target_transform)
 
         if not self.is_arm_init:
@@ -251,7 +246,7 @@ class ControlObjectPicking(Node):
                 self.end_episode_cnt += 1
 
         elif self.state == EnvStates.GO_CLOSE:
-            if time.time() - self.start_time > 2:
+            if time.time() - self.start_time > 4:
                 if round(gripper_target_tf.transform.translation.z, 4) <= -0.0255:
                     self.state = EnvStates.CLOSE_GRIPPER
 

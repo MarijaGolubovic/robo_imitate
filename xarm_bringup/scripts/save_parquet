@@ -42,8 +42,8 @@ def load_episodes(path):
     return episode_name
 
 
-def delete_rotation(episode_content):
-    """ If save full pose, you can delete rotation from dataset in current version"""
+def delete(episode_content):
+    """ If save additional elements, you can delete them from dataset in current version"""
     num_frames = len(episode_content)
     actions = []
 
@@ -100,10 +100,10 @@ def save_data_frame(path):
         images = load_images(image_folder)
 
         file_content = open(file_path, 'r').readlines()
-        file_content = delete_rotation(file_content)
+        file_content = delete(file_content)
 
         observation_file_content = open(observation_file_path, 'r').readlines()
-        observation_file_content = delete_rotation(observation_file_content)
+        observation_file_content = delete(observation_file_content)
         file_length = len(file_content)
 
         frame_index = 0
@@ -146,6 +146,7 @@ def save_data_frame(path):
     df = pd.DataFrame(data)
     df.to_parquet(output_path, engine='pyarrow')
     print("File is saved on path: ", output_path)
+    print('\n[INFO] If you want to train model, you need to move parquet file to folder `imitation/data`.')
 
 
 def load_hf_dataset_from_parquet(file_path):
@@ -156,14 +157,15 @@ def load_hf_dataset_from_parquet(file_path):
 def main():
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('--filename', type=str, help='Name of data directory.')
+    parser.add_argument('--data_path', type=str, help='Path to data directory.')
 
     args = parser.parse_args()
 
-    DATA_FILE = 'DATA'
-
-    if args.filename:
-        DATA_FILE = args.filename
+    if args.data_path is None:
+        print(f'[ERROR] You need to add data path!')
+        return
+    
+    DATA_FILE = args.data_path
 
     file_path = os.path.abspath(os.getcwd()) + '/' + DATA_FILE
 

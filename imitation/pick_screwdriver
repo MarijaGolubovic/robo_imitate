@@ -88,10 +88,6 @@ class PickScrewdriver(Node):
             self.current_pose_callback,
             1)
         self.current_pose_subscriber
-        
-        self.output_directory = Path("imitation/outputs/example")
-        if not os.path.exists(self.output_directory):
-            os.mkdir(self.output_directory)
 
         self.imitation = Imitation()
         
@@ -231,9 +227,9 @@ class PickScrewdriver(Node):
 
             self.current_pose_relativ.header.stamp = self.get_clock().now().to_msg()
             self.current_pose_relativ.header.frame_id = 'gripper_link_base'
-            self.current_pose_relativ.pose.position.x = (float(self.action[0]) / 1.5)
+            self.current_pose_relativ.pose.position.x = (float(self.action[0]) / 2.5)
             self.current_pose_relativ.pose.position.y = (float(self.action[1]) / 1.0) 
-            self.current_pose_relativ.pose.position.z = (float(self.action[2]) / 2.5)
+            self.current_pose_relativ.pose.position.z = (float(self.action[2]) / 3.5)
 
             quat = t3d.euler.euler2quat((self.action[3] / 1.5), (self.action[4] / 6.5), (self.action[5] / 1.5))
 
@@ -288,7 +284,7 @@ class PickScrewdriver(Node):
         elif self.state == OperationState.GO_CLOSE:
                 self.observation_current_pose.pose.position.z = 0.085
                 self.publisher_speed_limiter.publish(self.observation_current_pose)
-                if time.time() - self.timer > 2.5:
+                if time.time() - self.timer > 4.5:
                     self.state = OperationState.CLOSE_GRIPPER
                     self.timer  =time.time()
         
