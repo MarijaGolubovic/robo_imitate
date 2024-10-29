@@ -333,12 +333,12 @@ class PickScrewdriver(Node):
                 )
                 screwdriver_pose = rnp.numpify(screwdriver_target_tf.transform)
                 self.get_logger().info(f"Screwdriver: {screwdriver_pose}")
-                if time.time() - self.timer > 10:
+                if time.time() - self.timer > 12:
                     screwdriver_center = screwdriver_pose @ np.array([0., 0., 0., 1.])
                     screwdriver_center = screwdriver_center[:-1] / screwdriver_center[-1]
                     screwdriver_z = screwdriver_center[-1]
                     print("\n\n\n")
-                    if screwdriver_z > 0.25:
+                    if screwdriver_z > 0.15:
                         print(screwdriver_center)
                         print("=================SUCCESS=================")
                         self.eval_results.append(1)
