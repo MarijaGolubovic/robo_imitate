@@ -127,7 +127,7 @@ class PickScrewdriverSimEnv(Node):
         screwdriver_center = screwdriver_center[:-1] / screwdriver_center[-1]
         screwdriver_z = screwdriver_center[-1]
         print(screwdriver_z)
-        if screwdriver_z > 0.25:
+        if screwdriver_z > 0.12:
             return True
         else:
             return False

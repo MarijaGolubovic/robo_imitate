@@ -249,9 +249,9 @@ class PickScrewdriver(Node):
 
             self.current_pose_relativ.header.stamp = self.get_clock().now().to_msg()
             self.current_pose_relativ.header.frame_id = 'gripper_link_base'
-            self.current_pose_relativ.pose.position.x = (float(self.action[0]) / 1.5)
+            self.current_pose_relativ.pose.position.x = (float(self.action[0]) / 2.5)
             self.current_pose_relativ.pose.position.y = (float(self.action[1]) / 1.0) 
-            self.current_pose_relativ.pose.position.z = (float(self.action[2]) / 2.5)
+            self.current_pose_relativ.pose.position.z = (float(self.action[2]) / 3.5)
 
             quat = t3d.euler.euler2quat((self.action[3] / 1.5), (self.action[4] / 6.5), (self.action[5] / 1.5))
 
@@ -276,7 +276,7 @@ class PickScrewdriver(Node):
             self.start_pose.pose = pose
             self.current_pose.pose = pose
 
-            if self.observation_current_pose.pose.position.z < 0.10:
+            if self.observation_current_pose.pose.position.z < 0.12:
                 self.state = OperationState.OPEN_GRIPPER
                 self.timer = time.time()
                 self.get_logger().info('___________________________________ END ___________________________________')
@@ -319,9 +319,8 @@ class PickScrewdriver(Node):
                 msg.data = 0
                 self.lite6_gripper_publisher.publish(msg)
             
-            gripper_landing_limit_time_s = 5
 
-            if time.time() -  self.timer > gripper_landing_limit_time_s:
+            if time.time() -  self.timer > 1.5:
                 self.state = OperationState.PICK_UP
                 self.timer = time.time()
         elif self.state == OperationState.PICK_UP:

@@ -96,11 +96,16 @@ class StateTimeredPickingAgent(BaseAgent):
                 Pose
             )
 
-            if observation_pose.position.z < 0.20:
+            if observation_pose.position.z < 0.12:
                 self.agent_state = OperationState.OPEN_GRIPPER
                 self.timer = time.time()
 
-            self.step_count += 1            
+            if self.step_count > 90:
+                self.agent_state = OperationState.OPEN_GRIPPER
+                self.timer = time.time()
+
+            self.step_count += 1
+
             return GripperState(
                 target_pose_absolute, grip_closed=False
             )
