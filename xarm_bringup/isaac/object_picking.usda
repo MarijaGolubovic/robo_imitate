@@ -946,6 +946,8 @@ def Xform "World" (
 import random
 from pxr import Gf, UsdGeom
 import math
+from scipy.spatial.transform import Rotation as R
+
 
 def setup(db: og.Database):
     pass
@@ -965,11 +967,15 @@ def compute(db: og.Database):
     
     screwdriver.GetAttribute("xformOp:translate").Set(new_position)
     
-    new_yaw = random.uniform(-0.3, 0.3) - 3.1415
-    w = math.cos(new_yaw / 2)
-    z = math.sin(new_yaw / 2)
+    h2 = 1 / math.sqrt(2)
+    to_default = Gf.Quatf(0.0, 0.0, h2, -h2)
     
-    quat = Gf.Quatf(w, 0.0, 0.0, z)
+    yaw = random.uniform(-0.25, 0.25) * np.pi
+    random_rot = Gf.Quatf(
+        math.cos(yaw/2),
+        0., 0., math.sin(yaw/2),
+    )
+    quat = random_rot * to_default 
     screwdriver.GetAttribute("xformOp:orient").Set(quat)
  '''
             custom token inputs:scriptPath
