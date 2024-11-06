@@ -14,7 +14,7 @@ def load_images(image_folder):
     images = []
     filtered_index = []
     for filename in os.listdir(image_folder):
-        if filename.endswith(".jpg"):
+        if filename.endswith(".png"):
             image_path = os.path.join(image_folder, filename)
 
             filtered_name = re.findall("^[0-9]+", image_path.split('/')[-1])[0]
@@ -23,7 +23,7 @@ def load_images(image_folder):
     filtered_index.sort()
 
     for index in filtered_index:
-        new_image_path = image_folder + '/' + str(index)+'.jpg'
+        new_image_path = image_folder + '/' + str(index)+'.png'
 
         image = Image.open(new_image_path)
         imgByteArr = io.BytesIO()
@@ -96,7 +96,7 @@ def save_data_frame(path):
         image_folder = path + '/' + name
         file_path = path + '/' + 'actions/' + name + '.txt'
         observation_file_path = path + '/' + 'observations/' + name + '.txt'
-
+        print(image_folder)
         images = load_images(image_folder)
 
         file_content = open(file_path, 'r').readlines()
