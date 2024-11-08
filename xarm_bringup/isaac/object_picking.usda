@@ -7,8 +7,8 @@
                 double radius = 5
             }
             dictionary Perspective = {
-                double3 position = (1.3620990282454364, 0.5833755171721263, 0.5117705976170625)
-                double3 target = (-16.64377275424728, -14.050749335049675, -4.7302370228127595)
+                double3 position = (1.4015005305674948, 0.03145193250143696, 0.5117705976170625)
+                double3 target = (-21.469633210403074, -1.6013037175468252, -5.820134575433159)
             }
             dictionary Right = {
                 double3 position = (0, -5, 0)
@@ -892,82 +892,6 @@ def Xform "World" (
             uniform float2 ui:nodegraph:node:pos = (400.09076, -103.75943)
         }
 
-        def OmniGraphNode "script_node" (
-            prepend apiSchemas = ["NodeGraphNodeAPI"]
-        )
-        {
-            custom uint inputs:execIn (
-                customData = {
-                    bool isExecution = 1
-                }
-            )
-            prepend uint inputs:execIn.connect = </World/ros2_position_respawn/ros2_subscribe_twist.outputs:execOut>
-            custom string inputs:script = '''import numpy as np
-import random
-from pxr import Gf, UsdGeom
-import math
-
-def setup(db: og.Database):
-    pass
-
-
-def cleanup(db: og.Database):
-    pass
-
-
-def compute(db: og.Database):
-    stage = omni.usd.get_context().get_stage()
-    screwdriver = stage.GetPrimAtPath("/World/screwdriver")
-    
-    x_coor = random.uniform(0.33, 0.38)
-    y_coor = random.uniform(0.05, 0.15)
-    new_position = Gf.Vec3d(x_coor, y_coor, 0.012)
-    
-    screwdriver.GetAttribute("xformOp:translate").Set(new_position)
-    
-    
-    new_yaw = random.uniform(175, 195)
-    print(new_yaw)
-    #rotation_axis = Gf.Vec3d(0, 0, 1)
-    #new_rotation = Gf.Rotation(rotation_axis, rotation_angle)
-    
-    #new_rotation_i = new_rotation.GetQuaternion().GetImaginary()
-    
-    #imaginary2float = Gf.Vec3f(float(new_rotation_i[0]), float(new_rotation_i[1]), float(new_rotation_i[2]))
-    
-    #quaternion_rotation = Gf.Quatf(new_rotation.GetQuaternion().GetReal(), 
-    #                               imaginary2float)
-   # print(type(quaternion_rotation))
-    print(type(screwdriver.GetAttribute("xformOp:orient").Get()))
-    print(screwdriver.GetAttribute("xformOp:orient").Get())
-    
-   
-    new_angle = Gf.Vec3d(0.0, 0.0, new_yaw)
-    w = math.cos(new_yaw / 2)
-    z = math.sin(new_yaw / 2)
-    
-    
-    quat = Gf.Quatf(w, 0.0, 0.0, z)
-    #screwdriver.GetAttribute("xformOp:rotateXYZ").Set(new_angle)
-    
-    #screwdriver.GetAttribute("xformOp:orient").Set(quat)
-    
-    
-    '''
-            custom token inputs:scriptPath
-            custom bool inputs:usePath
-            token node:type = "omni.graph.scriptnode.ScriptNode"
-            int node:typeVersion = 2
-            custom uint outputs:execOut (
-                customData = {
-                    bool isExecution = 1
-                }
-            )
-            custom bool state:omni_initialized
-            uniform token ui:nodegraph:node:expansionState = "open"
-            uniform float2 ui:nodegraph:node:pos = (804.27783, -75.276)
-        }
-
         def OmniGraphNode "ros2_publish_raw_transform_tree" (
             prepend apiSchemas = ["NodeGraphNodeAPI"]
         )
@@ -1006,6 +930,66 @@ def compute(db: og.Database):
             custom double outputs:systemTime
             uniform token ui:nodegraph:node:expansionState = "open"
             uniform float2 ui:nodegraph:node:pos = (-433.15652, 418.21524)
+        }
+
+        def OmniGraphNode "script_node" (
+            prepend apiSchemas = ["NodeGraphNodeAPI"]
+        )
+        {
+            custom uint inputs:execIn (
+                customData = {
+                    bool isExecution = 1
+                }
+            )
+            prepend uint inputs:execIn.connect = </World/ros2_position_respawn/ros2_subscribe_twist.outputs:execOut>
+            custom string inputs:script = '''import numpy as np
+import random
+from pxr import Gf, UsdGeom
+import math
+from scipy.spatial.transform import Rotation as R
+
+
+def setup(db: og.Database):
+    pass
+
+
+def cleanup(db: og.Database):
+    pass
+
+
+def compute(db: og.Database):
+    stage = omni.usd.get_context().get_stage()
+    screwdriver = stage.GetPrimAtPath("/World/screwdriver")
+    
+    x_coor = random.uniform(0.33, 0.38)
+    y_coor = random.uniform(0.05, 0.15)
+    new_position = Gf.Vec3d(x_coor, y_coor, 0.012)
+    
+    screwdriver.GetAttribute("xformOp:translate").Set(new_position)
+    
+    h2 = 1 / math.sqrt(2)
+    to_default = Gf.Quatf(0.0, 0.0, h2, -h2)
+    
+    yaw = random.uniform(-0.25, 0.25) * np.pi
+    random_rot = Gf.Quatf(
+        math.cos(yaw/2),
+        0., 0., math.sin(yaw/2),
+    )
+    quat = random_rot * to_default 
+    screwdriver.GetAttribute("xformOp:orient").Set(quat)
+ '''
+            custom token inputs:scriptPath
+            custom bool inputs:usePath
+            token node:type = "omni.graph.scriptnode.ScriptNode"
+            int node:typeVersion = 2
+            custom uint outputs:execOut (
+                customData = {
+                    bool isExecution = 1
+                }
+            )
+            custom bool state:omni_initialized
+            uniform token ui:nodegraph:node:expansionState = "open"
+            uniform float2 ui:nodegraph:node:pos = (804.27783, -75.276)
         }
     }
 

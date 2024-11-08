@@ -233,15 +233,12 @@ class ControlObjectPicking(Node):
                 # dummy action in the end
                 self.episode_state.data = 1
                 self.publisher_start_saving.publish(self.episode_state)
-                self.skip_saving = True
+                #self.skip_saving = True
+
                 if self.end_episode_cnt > 10:
                     self.state = EnvStates.GO_CLOSE
                     self.target_pose.pose.position.z = 0.09
                     self.start_time = time.time()
-
-                    # end episode
-                    self.episode_state.data = 0
-                    self.publisher_start_saving.publish(self.episode_state)
 
                 self.end_episode_cnt += 1
 
@@ -255,7 +252,6 @@ class ControlObjectPicking(Node):
 
         elif self.state == EnvStates.CLOSE_GRIPPER:
 
-            self.skip_saving = True
             if not self.is_object_picked:
                 self.state = EnvStates.UP
                 self.gripper_status = GripperStatus.CLOSE
@@ -270,15 +266,23 @@ class ControlObjectPicking(Node):
                     f'Close gripper! {round(gripper_target_tf.transform.translation.z, 2)}')
 
         elif self.state == EnvStates.UP:
-            if time.time() - self.start_time > 0.1:
+            if time.time() - self.start_time > 0.5:
                 self.target_pose.pose.position.z = 0.35
                 self.state = EnvStates.DOWN
                 self.start_time = time.time()
+                # end episode
+                self.episode_state.data = 0
+                self.publisher_start_saving.publish(self.episode_state)
 
                 self.get_logger().info('Move upward...')
 
         elif self.state == EnvStates.DOWN:
-            if time.time() - self.start_time > 3.0:
+            if time.time() - self.start_time > 5.0:
+                # end episode
+                self.skip_saving = True
+                self.episode_state.data = 0
+                self.publisher_start_saving.publish(self.episode_state)
+
                 self.skip_saving = True
                 self.target_pose.pose.position.z = 0.09
                 self.state = EnvStates.OPEN_GRIPPER

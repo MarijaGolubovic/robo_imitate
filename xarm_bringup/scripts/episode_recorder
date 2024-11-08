@@ -6,7 +6,7 @@ from geometry_msgs.msg import PoseStamped
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge, CvBridgeError
 import transforms3d as t3d
-from std_msgs.msg import Int32
+from std_msgs.msg import Int32, Float64MultiArray
 from ros2_numpy_tf import ros2numpy
 from datetime import datetime
 import transforms3d as t3d
@@ -16,12 +16,12 @@ import os
 import argparse
 
 def get_action_from_observations(observations):
-    last_observation_msg = observations[-1]
+    last_observation_msg, last_obervation_gripper_open = observations[-1]
     last_observation = ros2numpy(last_observation_msg)
 
     actions = []
 
-    for observation_msg in observations:
+    for (observation_msg, observation_is_gripper_open) in observations:
         observation = ros2numpy(observation_msg)
 
         action = np.linalg.inv(observation) @ last_observation
@@ -32,8 +32,10 @@ def get_action_from_observations(observations):
 
         pose = np.concatenate((translation, rotation))     
 
-        action_str = '[{}]'.format(', '.join(map(str, pose))) + '\n'
-
+        action_str = '[{}, {}]\n'.format(
+            ', '.join(map(str, pose)),
+            str(observation_is_gripper_open)
+        )
         actions.append(action_str)
 
     return actions
@@ -74,10 +76,25 @@ class SaveTeleoperationData(Node):
         self.images_counter = 0
 
         self.observations = []
-
-
+        
+        self.is_gripper_open = 1
+        self.is_gripper_open_subscriber = self.create_subscription(
+            Float64MultiArray, 
+            '/position_controller/commands',
+            self.is_gripper_open_callback,
+            1
+        )
+        
         self.DATA_DIR = data_dir
         self.get_logger().info(self.DATA_DIR)
+
+    def is_gripper_open_callback(self, msg):
+        assert len(msg.data) == 1, msg.data
+        value = msg.data[0]
+        if value >= 0:
+            self.is_gripper_open = 1
+        else:
+            self.is_gripper_open = -1
 
     def image_callback(self, msg):
         try:
@@ -100,7 +117,9 @@ class SaveTeleoperationData(Node):
                 f'---------------------------------{msg.data}')
 
         if msg.data == 1:
-            self.observations.append(self.current_observation_pose)
+            self.observations.append(
+                (self.current_observation_pose, self.is_gripper_open)
+            )
             self.save_current_frame()
 
         if msg.data == 0:
@@ -118,7 +137,7 @@ class SaveTeleoperationData(Node):
         observation_folder = dir_path + '/observations'
         action_folder = dir_path + '/actions'
 
-        if not os.path.exists(dir_path):
+        if not os.path.exists(dir_path): 
             os.mkdir(dir_path)
 
         if not os.path.exists(self.images_folder):
@@ -153,11 +172,12 @@ class SaveTeleoperationData(Node):
         quat = [w_ori, x_ori, y_ori, z_ori]
         euler_angles_o = t3d.euler.quat2euler(quat)
 
+        gr = self.is_gripper_open
         observation = (
-            f"[{x_pos}, {y_pos}, {z_pos}, {euler_angles_o[0]}, {euler_angles_o[1]}, {euler_angles_o[2]}]\n")
+            f"[{x_pos}, {y_pos}, {z_pos}, {euler_angles_o[0]}, {euler_angles_o[1]}, {euler_angles_o[2]}, {gr}]\n")
 
         image_name = self.images_folder + '/' + \
-            str(self.images_counter) + '.jpg'
+            str(self.images_counter) + '.png'
         cv2.imwrite(image_name, self.image)
         self.observation_file.write(observation)
 
